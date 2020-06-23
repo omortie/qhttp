@@ -9,8 +9,9 @@
 #include "../include/unixcatcher.hpp"
 ///////////////////////////////////////////////////////////////////////////////
 
-int main(int argc, char ** argv) {
-    QString port = "8080";
+int main(int argc, char **argv)
+{
+    QString port = "8081";
     if ( argc == 2 ) {
         port = argv[1]; // override default port
     }
@@ -22,11 +23,11 @@ int main(int argc, char ** argv) {
 
     using namespace qhttp::server;
     QHttpServer server(&app);
-    server.listen(port, [](QHttpRequest* req, QHttpResponse* res) {
-        req->collectData(8*1024*1024); // maximum 8MB of data for each post request
+    server.listen(port, [](QHttpRequest * req, QHttpResponse * res) {
+        req->collectData(8 * 1024 * 1024); // maximum 8MB of data for each post request
         // the better approach is to use req->onData(...)
 
-        req->onEnd([req, res](){
+        req->onEnd([req, res]() {
             res->setStatusCode(qhttp::ESTATUS_OK);
             res->addHeader("connection", "close"); // optional header (added by default)
 
