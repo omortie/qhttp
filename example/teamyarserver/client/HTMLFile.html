@@ -1,0 +1,174 @@
+<html>
+  <head>
+        <title>Teamyar Client</title>
+        <meta content="">
+        <style></style>
+        <script type="text/javascript">
+        
+    function newStudent() {
+        var xhr = new XMLHttpRequest();
+        xhr.open('post', 'http://127.0.0.1:10022/students/add', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+        xhr.send(document.getElementById("newStudentEdit").value);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+                document.getElementById("studentResponseHolder").innerHTML = xhr.response;
+            }
+        }
+        updateFields();
+    }
+    
+    function newCourse() {
+        var xhr = new XMLHttpRequest();
+        xhr.open('post', 'http://127.0.0.1:10022/courses/add', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+        xhr.send(document.getElementById("newCourseEdit").value);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+                document.getElementById("courseResponseHolder").innerHTML = xhr.response;
+            }
+        }
+        updateFields();
+    }
+    
+    function requestCourses() {
+        var xmlhttp = new XMLHttpRequest();
+        var url = "http://127.0.0.1:10022/courses/request";
+
+    xmlhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            var myArr = JSON.parse(this.responseText);
+            append_courses_json(myArr);
+        }
+    };
+        xmlhttp.open("GET", url, true);
+        xmlhttp.send();
+    }
+    
+    //this function appends the json data to the table 'gable'
+        function append_courses_json(data){
+            var table = document.getElementById('coursesTable');
+            var elmtTable = table;
+            var tableRows = elmtTable.getElementsByTagName('tr');
+            var rowCount = tableRows.length;
+
+            for (var x=rowCount-1; x>0; x--) {
+            elmtTable.removeChild(tableRows[x]);
+            }
+            
+            var enrolCourseSelector = document.getElementById("courseSelector");
+            enrolCourseSelector.length = 0;
+            
+            data.forEach(function(object) {
+                var tr = document.createElement('tr');
+                tr.innerHTML = '<td>' + object.ID + '</td>' +
+                '<td>' + object.name + '</td>';
+                table.appendChild(tr);
+                
+                let option;
+                option = document.createElement('option');
+                option.text = object.name;
+                option.value = object.ID;
+                enrolCourseSelector.add(option);
+            });
+        }
+        
+        function requestStudents() {
+        var xmlhttp = new XMLHttpRequest();
+        var url = "http://127.0.0.1:10022/students/request";
+
+    xmlhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            var myArr = JSON.parse(this.responseText);
+            console.log(myArr);
+            append_students_json(myArr);
+        }
+    };
+        xmlhttp.open("GET", url, true);
+        xmlhttp.send();
+    }
+    
+    //this function appends the json data to the table 'gable'
+        function append_students_json(data){
+            var table = document.getElementById('studentsTable');
+            var elmtTable = table;
+            var tableRows = elmtTable.getElementsByTagName('tr');
+            var rowCount = tableRows.length;
+
+            for (var x=rowCount-1; x>0; x--) {
+            elmtTable.removeChild(tableRows[x]);
+            }
+            
+            var enrolStudentSelector = document.getElementById("studentSelector");
+            enrolStudentSelector.length = 0;
+            
+            data.forEach(function(object) {
+                var tr = document.createElement('tr');
+                tr.innerHTML = '<td>' + object.ID + '</td>' +
+                '<td>' + object.name + '</td>';
+                table.appendChild(tr);
+                
+                let option;
+                option = document.createElement('option');
+                option.text = object.name;
+                option.value = object.ID;
+                enrolStudentSelector.add(option);
+            });
+        }
+        
+        function updateFields() {
+            requestStudents();
+            requestCourses();
+        }
+        </script>
+    </head>
+    <body onload="updateFields()">
+        <center><h5>Welcome To Teamyar Demo Client</h5></center>
+        <hr>
+        <h3>Students</h3>
+        <p>Enter new Student name:</p>
+        <input type="text" id="newStudentEdit">
+        <input type="submit" value="Add" onclick="newStudent()">
+        <p id="studentResponseHolder"></p>
+        <table id="studentsTable">
+            <colgroup>
+                <col class="twenty" />
+                <col class="fourty" />
+            </colgroup>
+            <tr>
+                <th onclick="sortTable(0)"><span class="glyphicon glyphicon-sort"></span>&nbsp&nbspID</th>
+                <th onclick="sortTable(1)"><span class="glyphicon glyphicon-sort"></span>&nbsp&nbspName</th>
+            </tr>
+        </table>
+        <hr>
+        <h3>Courses</h3>
+        <p>Enter new Course name:</p>
+        <input type="text" id="newCourseEdit">
+        <input type="submit" value="Add" onclick="newCourse()">
+        <p id="courseResponseHolder"></p>
+        <table id="coursesTable">
+            <colgroup>
+                <col class="twenty" />
+                <col class="fourty" />
+            </colgroup>
+            <tr>
+                <th onclick="sortTable(0)"><span class="glyphicon glyphicon-sort"></span>&nbsp&nbspID</th>
+                <th onclick="sortTable(1)"><span class="glyphicon glyphicon-sort"></span>&nbsp&nbspName</th>
+            </tr>
+        </table>
+        <hr>
+        <h3>Enrol on Courses</h3>
+        <form action="http://127.0.0.1:10022/courses/enrol" method="post" target="_blank">
+            <label for="studentSelector">Student:</label>
+            <select id="studentSelector" name="student">
+            <option value="nulli">None</option>
+            </select>
+            <b>On</b>
+            <label for="courseSelector">Course:</label>
+            <select id="courseSelector" name="course">
+            <option value="nulli">None</option>
+            </select>
+            <input type="submit" value="Enrol">
+        </form>
+    </body>
+</html>

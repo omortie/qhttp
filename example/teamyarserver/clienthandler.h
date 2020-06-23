@@ -24,8 +24,10 @@ public:
 
 private slots:
     void addCourse(QHttpRequest *req, QHttpResponse *res);
+    void requestCourses(QHttpRequest *req, QHttpResponse *res);
     void addStudent(QHttpRequest *req, QHttpResponse *res);
-    void enrollStudentOnCourse(QHttpRequest *req, QHttpResponse *res);
+    void requestStudents(QHttpRequest *req, QHttpResponse *res);
+    void enrolStudentOnCourse(QHttpRequest *req, QHttpResponse *res);
 
 private:
     DatabaseInterface *dbInterface;

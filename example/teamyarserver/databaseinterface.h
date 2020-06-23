@@ -24,6 +24,11 @@ public:
 
     int addStudent(QString name);
     int addCourse(QString name);
+    int addEnrolment(int studentNumber, int courseNumber);
+    QJsonArray requestCourses();
+    QJsonArray requestStudents();
+
+    QString lastErr();
 
 private:
     QSqlDatabase db;
