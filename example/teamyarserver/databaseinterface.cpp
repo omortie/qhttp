@@ -11,7 +11,7 @@ DatabaseInterface::DatabaseInterface(QObject *parent) : QObject(parent)
 {
     db = QSqlDatabase::addDatabase("QSQLITE");
 
-    db.setDatabaseName("../../example/teamyarserver/TeamyarDB.sqlite");
+    db.setDatabaseName("../../example/teamyarserver/database/TeamyarDB.sqlite");
     QFile dbFile(db.databaseName());
     if (!dbFile.exists()) {
         qDebug() << db.databaseName() + " Database doesn't exists";
