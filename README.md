@@ -37,75 +37,6 @@ This project was inspired by
 implement a Qt HTTP server. `QHttp` pushes the idea further by implementing
 client side classes, better memory management, a lot more Node.js-like API, ...
 
-## Sample codes
-[TOC](#table-of-contents)
-
-a HelloWorld **HTTP server** by `QHttp` looks like:
-```cpp
-int main(int argc, char** argv) {
-    QCoreApplication app(argc, argv);
-
-    using namespace qhttp::server;
-    QHttpServer server(&app);
-    server.listen( // listening on 0.0.0.0:8080
-        QHostAddress::Any, 8080,
-        [](QHttpRequest* req, QHttpResponse* res) {
-            // http status 200
-            res->setStatusCode(qhttp::ESTATUS_OK);
-            // the response body data
-            res->end("Hello World!\n");
-            // automatic memory management for req/res
-    });
-
-    if ( !server.isListening() ) {
-        qDebug("failed to listen");
-        return -1;
-    }
-
-    return app.exec();
-}
-```
-
-to request weather information by **HTTP client**:
-```cpp
-int main(int argc, char** argv) {
-    QCoreApplication app(argc, argv);
-
-    using namespace qhttp::client;
-    QHttpClient client(&app);
-    QUrl        weatherUrl("http://wttr.in/tehran");
-
-    client.request(qhttp::EHTTP_GET, weatherUrl, [](QHttpResponse* res) {
-        // response handler, called when the incoming HTTP headers are ready
-
-        // gather HTTP response data (HTTP body)
-        res->collectData();
-
-        // when all data in HTTP response have been read:
-        res->onEnd([&]() {
-            writeTo("weather.html", res->collectedData());
-
-            // done! now quit the application
-            qApp->quit();
-        });
-
-        // just for fun! print incoming headers:
-        qDebug("\n[Headers:]");
-        res->headers().forEach([](auto cit) {
-            qDebug("%s : %s", cit.key().constData(), cit.value().constData());
-        });
-    });
-
-    // set a timeout for the http connection
-    client.setConnectingTimeOut(10000, []{
-        qDebug("connecting to HTTP server timed out!");
-        qApp->quit();
-    });
-
-    return app.exec();
-}
-```
-
 
 ## Features
 [TOC](#table-of-contents)
@@ -159,22 +90,6 @@ $qhttp/> qmake -r qhttp.pro
 $qhttp/> make -j 8
 ```
 
-## Multi-threading
-[TOC](#table-of-contents)
-
-As `QHttp` is **asynchronous** and **non-blocking**, your app can handle
-thousands of concurrent HTTP connections by a single thread.
-
-in some rare scenarios you may want to use multiple handler threads (although
- it's not always the best solution):
-
-* there are some blocking APIs (QSql, system calls, ...) in your connection
- handler (adopting asynchronous layer over the blocking API is a better
- approach).
-* the hardware has lots of free cores and the measurement shows that the load
- on the main `QHttp` thread is close to highest limit. There you can spawn some
- other handler threads.
-
 
 ## Source tree
 [TOC](#table-of-contents)
@@ -195,6 +110,9 @@ usage:
   - **`keep-alive`**: shows how to keep an http connection open and
   transmitting many requests/responses. see:
   [README@keep-alive](./example/keep-alive/README.md)
+  - **`teamyar server`**: this is a demo test client-server example for hiring test of
+  teamyar company see:
+  [README@teamyarserver](./example/teamyarserver/README.md)
   - **`post-collector`**: another server example shows how to collect large
   data by POST requests. see:
   [README@post-collector](./example/postcollector/README.md)
@@ -228,4 +146,7 @@ use `QNetworkAccessManager` which supports proxy, redirections, authentication,
 [TOC](#table-of-contents)
 
 Distributed under the MIT license. Copyright (c) 2014, Amir Zamani.
+
+## Forking Agenda
+I just forked this repository to use it for a simple web server test of Teamyar company
 
