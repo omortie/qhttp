@@ -1,9 +1,9 @@
 TEMPLATE = subdirs
 
-SUBDIRS += helloworld
-SUBDIRS += postcollector
-SUBDIRS += basic-server
-SUBDIRS += teamyarserver
+SUBDIRS += helloworld \
+ postcollector \
+ basic-server \
+ teamyarserver
 
 contains(DEFINES, QHTTP_HAS_CLIENT) {
     SUBDIRS += keep-alive
