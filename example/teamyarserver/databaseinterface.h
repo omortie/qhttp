@@ -27,6 +27,7 @@ public:
     int addEnrolment(int studentNumber, int courseNumber);
     QJsonArray requestCourses();
     QJsonArray requestStudents();
+    QJsonArray requestEnrolments(int studentID);
 
     QString lastErr();
 

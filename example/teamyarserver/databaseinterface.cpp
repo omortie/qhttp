@@ -71,6 +71,20 @@ int DatabaseInterface::addCourse(QString name)
 
 int DatabaseInterface::addEnrolment(int studentNumber, int courseNumber)
 {
+    // check if the student already has this course or not
+    QSqlQuery checkQuery;
+    checkQuery.prepare("SELECT * FROM T_Enrolments WHERE Student=:studentID AND Course=:courseID");
+    checkQuery.bindValue(":studentID", studentNumber);
+    checkQuery.bindValue(":courseID", courseNumber);
+
+    if (checkQuery.exec()) {
+        // if student already enroled on the selected course return -1 temporarily to prevent
+        // enrolling and then implement a proper error system
+        if (checkQuery.next()) {
+            return -1;
+        }
+    }
+
     int returnedID = -1;
 
     QSqlQuery query;
@@ -127,6 +141,33 @@ QJsonArray DatabaseInterface::requestStudents()
     }
 
     return allStudentsArray;
+}
+
+QJsonArray DatabaseInterface::requestEnrolments(int studentID)
+{
+    QJsonArray allEnrolmentsArray;
+
+    // requesting all courses from database
+    QSqlQuery query;
+    query.prepare("SELECT * FROM T_Enrolments"
+                  " JOIN T_Students ON T_Enrolments.Student=T_Students.ID"
+                  " JOIN T_Courses ON T_Enrolments.Course=T_Courses.ID"
+                  " WHERE T_Enrolments.Student=:id");
+    query.bindValue(":id", studentID);
+    if (query.exec()) {
+        QJsonObject enrolmentObj;
+        while (query.next()) {
+            enrolmentObj.insert("ID", query.value(0).toString());
+            enrolmentObj.insert("Student", query.value(4).toString());
+            enrolmentObj.insert("Course", query.value(6).toString());
+
+            allEnrolmentsArray.append(enrolmentObj);
+        }
+
+        qDebug() << "requesting all courses of the student " + QString::number(studentID) + "done";
+    }
+
+    return allEnrolmentsArray;
 }
 
 QString DatabaseInterface::lastErr()

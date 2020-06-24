@@ -7,7 +7,7 @@
         
     function newStudent() {
         var xhr = new XMLHttpRequest();
-        xhr.open('post', 'http://127.0.0.1:10022/students/add', true);
+        xhr.open('post', '/students/add', true);
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
         xhr.send(document.getElementById("newStudentEdit").value);
         xhr.onreadystatechange = function () {
@@ -20,7 +20,7 @@
     
     function newCourse() {
         var xhr = new XMLHttpRequest();
-        xhr.open('post', 'http://127.0.0.1:10022/courses/add', true);
+        xhr.open('post', '/courses/add', true);
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
         xhr.send(document.getElementById("newCourseEdit").value);
         xhr.onreadystatechange = function () {
@@ -33,7 +33,7 @@
     
     function requestCourses() {
         var xmlhttp = new XMLHttpRequest();
-        var url = "http://127.0.0.1:10022/courses/request";
+        var url = "/courses/request";
 
     xmlhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
@@ -74,19 +74,19 @@
         }
         
         function requestStudents() {
-        var xmlhttp = new XMLHttpRequest();
-        var url = "http://127.0.0.1:10022/students/request";
+            var xmlhttp = new XMLHttpRequest();
+            var url = "/students/request";
 
-    xmlhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-            var myArr = JSON.parse(this.responseText);
-            console.log(myArr);
-            append_students_json(myArr);
+            xmlhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    var myArr = JSON.parse(this.responseText);
+                    console.log(myArr);
+                    append_students_json(myArr);
+                }
+            };
+            xmlhttp.open("GET", url, true);
+            xmlhttp.send();
         }
-    };
-        xmlhttp.open("GET", url, true);
-        xmlhttp.send();
-    }
     
     //this function appends the json data to the table 'gable'
         function append_students_json(data){
@@ -119,6 +119,53 @@
         function updateFields() {
             requestStudents();
             requestCourses();
+        }
+        
+        function currentStudentChanged() {
+            var currentStudentSelector = document.getElementById("studentSelector");
+            var currentStudent = currentStudentSelector.value;
+            
+            if (currentStudent != "nulli") {
+                console.log("request enrolls");
+                requestEnrolments(currentStudent);
+            } else {
+                console.log("error!");
+            }
+        }
+        
+        function requestEnrolments(student) {
+            var xmlhttp = new XMLHttpRequest();
+            var url = "/enrolments/request";
+
+            xmlhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    var myArr = JSON.parse(this.responseText);
+                    console.log(myArr);
+                    append_enrolments_json(myArr);
+                }
+            };
+            xmlhttp.open("POST", url, true);
+            xmlhttp.send(student);
+        }
+        
+        //this function appends the json data to the table 'gable'
+        function append_enrolments_json(data){
+            var table = document.getElementById('enrolmentsTable');
+            var elmtTable = table;
+            var tableRows = elmtTable.getElementsByTagName('tr');
+            var rowCount = tableRows.length;
+
+            for (var x=rowCount-1; x>0; x--) {
+            elmtTable.removeChild(tableRows[x]);
+            }
+            
+            data.forEach(function(object) {
+                var tr = document.createElement('tr');
+                tr.innerHTML = '<td>' + object.ID + '</td>' +
+                '<td>' + object.Student + '</td>' +
+                '<td>' + object.Course + '</td>';
+                table.appendChild(tr);
+            });
         }
         </script>
     </head>
@@ -160,7 +207,7 @@
         <h3>Enrol on Courses</h3>
         <form action="http://127.0.0.1:10022/courses/enrol" method="post" target="_blank">
             <label for="studentSelector">Student:</label>
-            <select id="studentSelector" name="student">
+            <select onchange="currentStudentChanged()" id="studentSelector" name="student">
             <option value="nulli">None</option>
             </select>
             <b>On</b>
@@ -170,5 +217,18 @@
             </select>
             <input type="submit" value="Enrol">
         </form>
+        <h5>Current Courses Enrolled:</h5>
+        <table id="enrolmentsTable">
+            <colgroup>
+                <col class="twenty" />
+                <col class="fourty" />
+                <col class="twentyfive" />
+            </colgroup>
+            <tr>
+                <th onclick="sortTable(0)"><span class="glyphicon glyphicon-sort"></span>&nbsp&nbspID</th>
+                <th onclick="sortTable(1)"><span class="glyphicon glyphicon-sort"></span>&nbsp&nbspStudent</th>
+                <th onclick="sortTable(2)"><span class="glyphicon glyphicon-sort"></span>&nbsp&nbspCourse</th>
+            </tr>
+        </table>
     </body>
 </html>

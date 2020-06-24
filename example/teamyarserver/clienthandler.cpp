@@ -6,12 +6,18 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QUrlQuery>
+#include <QFile>
+#include <QTextStream>
 #include <QCoreApplication>
 
 ClientHandler::ClientHandler(QHttpRequest *req, QHttpResponse *res)
     : QObject(req /* as parent*/)
 {
     dbInterface = DatabaseInterface::instance();
+
+    if (!req->url().url().compare("/")) {
+        requestIndexPage(req, res);
+    }
 
     if (!req->url().url().compare("/students/add")) {
         addStudent(req, res);
@@ -40,11 +46,39 @@ ClientHandler::ClientHandler(QHttpRequest *req, QHttpResponse *res)
     if (!req->url().url().compare("/students/getreport")) {
         //        enrollStudentOnCourse(req, res);
     }
+
+    if (!req->url().url().compare("/enrolments/request")) {
+        requestEnrolments(req, res);
+    }
 }
 
 ClientHandler::~ClientHandler()
 {
     qDebug("  ~ClientHandler: I've being called automatically!");
+}
+
+void ClientHandler::requestIndexPage(QHttpRequest *req, QHttpResponse *res)
+{
+    Q_UNUSED(req);
+
+    QFile indexFile("../../example/teamyarserver/client/HTMLFile.html");
+
+    if (indexFile.exists() && indexFile.open(QIODevice::ReadOnly)) {
+        QString message = indexFile.readAll();
+
+        // return results
+        res->setStatusCode(qhttp::ESTATUS_OK);
+        res->addHeaderValue("content-length", message.size());
+        res->addHeaderValue("Access-Control-Allow-Origin", QString("*"));
+        res->end(message.toUtf8());
+    } else {
+        QString message = QString("NOT FOUND 404");
+
+        res->setStatusCode(qhttp::ESTATUS_NOT_FOUND);
+        res->addHeaderValue("content-length", message.size());
+        res->addHeaderValue("Access-Control-Allow-Origin", QString("*"));
+        res->end(message.toUtf8());
+    }
 }
 
 void ClientHandler::addCourse(QHttpRequest *req, QHttpResponse *res)
@@ -202,6 +236,32 @@ void ClientHandler::enrolStudentOnCourse(QHttpRequest *req, QHttpResponse *res)
                 res->addHeaderValue("Access-Control-Allow-Origin", QString("*"));
                 res->end(message.toUtf8());
             }
+        }
+    });
+}
+
+void ClientHandler::requestEnrolments(QHttpRequest *req, QHttpResponse *res)
+{
+    qDebug() << "requested all enrolments of a specific student";
+
+    //    // automatically collect http body(data) upto 1KB
+    req->collectData(1024);
+
+    //    // when all the incoming data are gathered, send some response to client.
+    req->onEnd([req, res]() {
+        if (req->collectedData().size() > 0) {
+            QString studentID = req->collectedData().constData();
+            qDebug() << "requested all enrolments of the student ID " << studentID;
+
+            QJsonArray allEnrolments = DatabaseInterface::instance()->requestEnrolments(studentID.toInt());
+
+            QString message = QJsonDocument(allEnrolments).toJson();
+
+            res->setStatusCode(qhttp::ESTATUS_OK);
+            res->addHeaderValue("content-length", message.size());
+            res->addHeaderValue("Access-Control-Allow-Origin", QString("*"));
+            res->addHeaderValue("content-type", QString("application/json"));
+            res->end(message.toUtf8());
         }
     });
 }

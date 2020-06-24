@@ -23,11 +23,13 @@ public:
     virtual ~ClientHandler();
 
 private slots:
+    void requestIndexPage(QHttpRequest *req, QHttpResponse *res);
     void addCourse(QHttpRequest *req, QHttpResponse *res);
     void requestCourses(QHttpRequest *req, QHttpResponse *res);
     void addStudent(QHttpRequest *req, QHttpResponse *res);
     void requestStudents(QHttpRequest *req, QHttpResponse *res);
     void enrolStudentOnCourse(QHttpRequest *req, QHttpResponse *res);
+    void requestEnrolments(QHttpRequest *req, QHttpResponse *res);
 
 private:
     DatabaseInterface *dbInterface;
