@@ -8,6 +8,5 @@ there is also a SQLITE database file in the database directory that contains 4 t
 
 # to-do
 - make a default client html file in the localhost:8080 request
-- implement a way in client to set mark for each enrolment 
 - separate javascript codes from html file
-- document the code using doxygen
+- better build system (CMake) and some code clean up
