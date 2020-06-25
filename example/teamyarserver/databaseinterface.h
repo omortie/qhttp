@@ -25,6 +25,7 @@ public:
     int addStudent(QString name);
     int addCourse(QString name);
     int addEnrolment(int studentNumber, int courseNumber);
+    int setMark(int enrolmnetID, double mark);
     QJsonArray requestCourses();
     QJsonArray requestStudents();
     QJsonArray requestEnrolments(int studentID);

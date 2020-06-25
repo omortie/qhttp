@@ -50,6 +50,10 @@ ClientHandler::ClientHandler(QHttpRequest *req, QHttpResponse *res)
     if (!req->url().url().compare("/enrolments/request")) {
         requestEnrolments(req, res);
     }
+
+    if (!req->url().url().compare("/enrolments/setmark")) {
+        setMark(req, res);
+    }
 }
 
 ClientHandler::~ClientHandler()
@@ -69,14 +73,12 @@ void ClientHandler::requestIndexPage(QHttpRequest *req, QHttpResponse *res)
         // return results
         res->setStatusCode(qhttp::ESTATUS_OK);
         res->addHeaderValue("content-length", message.size());
-        res->addHeaderValue("Access-Control-Allow-Origin", QString("*"));
         res->end(message.toUtf8());
     } else {
         QString message = QString("NOT FOUND 404");
 
         res->setStatusCode(qhttp::ESTATUS_NOT_FOUND);
         res->addHeaderValue("content-length", message.size());
-        res->addHeaderValue("Access-Control-Allow-Origin", QString("*"));
         res->end(message.toUtf8());
     }
 }
@@ -103,7 +105,6 @@ void ClientHandler::addCourse(QHttpRequest *req, QHttpResponse *res)
                 // return results
                 res->setStatusCode(qhttp::ESTATUS_OK);
                 res->addHeaderValue("content-length", message.size());
-                res->addHeaderValue("Access-Control-Allow-Origin", QString("*"));
                 res->end(message.toUtf8());
             } else {
                 qDebug() << "database interface did not return correctly";
@@ -112,7 +113,6 @@ void ClientHandler::addCourse(QHttpRequest *req, QHttpResponse *res)
             res->setStatusCode(qhttp::ESTATUS_BAD_REQUEST);
             QString message = QString("course name did not received");
             res->addHeaderValue("content-length", message.size());
-            res->addHeaderValue("Access-Control-Allow-Origin", QString("*"));
             res->end(message.toUtf8());
         }
     });
@@ -129,7 +129,6 @@ void ClientHandler::requestCourses(QHttpRequest *req, QHttpResponse *res)
 
         res->setStatusCode(qhttp::ESTATUS_OK);
         res->addHeaderValue("content-length", message.size());
-        res->addHeaderValue("Access-Control-Allow-Origin", QString("*"));
         res->addHeaderValue("content-type", QString("application/json"));
         res->end(message.toUtf8());
     } else {
@@ -137,7 +136,6 @@ void ClientHandler::requestCourses(QHttpRequest *req, QHttpResponse *res)
 
         res->setStatusCode(qhttp::ESTATUS_EXPECTATION_FAILED);
         res->addHeaderValue("content-length", message.size());
-        res->addHeaderValue("Access-Control-Allow-Origin", QString("*"));
         res->end(message.toUtf8());
     }
 }
@@ -164,7 +162,6 @@ void ClientHandler::addStudent(QHttpRequest *req, QHttpResponse *res)
                 // return results
                 res->setStatusCode(qhttp::ESTATUS_OK);
                 res->addHeaderValue("content-length", message.size());
-                res->addHeaderValue("Access-Control-Allow-Origin", QString("*"));
                 res->end(message.toUtf8());
             } else {
                 qDebug() << "database interface did not return correctly";
@@ -173,7 +170,6 @@ void ClientHandler::addStudent(QHttpRequest *req, QHttpResponse *res)
             res->setStatusCode(qhttp::ESTATUS_BAD_REQUEST);
             QString message = QString("student name did not received");
             res->addHeaderValue("content-length", message.size());
-            res->addHeaderValue("Access-Control-Allow-Origin", QString("*"));
             res->end(message.toUtf8());
         }
     });
@@ -190,7 +186,6 @@ void ClientHandler::requestStudents(QHttpRequest *req, QHttpResponse *res)
 
         res->setStatusCode(qhttp::ESTATUS_OK);
         res->addHeaderValue("content-length", message.size());
-        res->addHeaderValue("Access-Control-Allow-Origin", QString("*"));
         res->addHeaderValue("content-type", QString("application/json"));
         res->end(message.toUtf8());
     } else {
@@ -198,7 +193,6 @@ void ClientHandler::requestStudents(QHttpRequest *req, QHttpResponse *res)
 
         res->setStatusCode(qhttp::ESTATUS_EXPECTATION_FAILED);
         res->addHeaderValue("content-length", message.size());
-        res->addHeaderValue("Access-Control-Allow-Origin", QString("*"));
         res->end(message.toUtf8());
     }
 }
@@ -227,13 +221,11 @@ void ClientHandler::enrolStudentOnCourse(QHttpRequest *req, QHttpResponse *res)
                 // return results
                 res->setStatusCode(qhttp::ESTATUS_OK);
                 res->addHeaderValue("content-length", message.size());
-                res->addHeaderValue("Access-Control-Allow-Origin", QString("*"));
                 res->end(message.toUtf8());
             } else {
                 res->setStatusCode(qhttp::ESTATUS_BAD_REQUEST);
                 QString message = QString("student name did not received");
                 res->addHeaderValue("content-length", message.size());
-                res->addHeaderValue("Access-Control-Allow-Origin", QString("*"));
                 res->end(message.toUtf8());
             }
         }
@@ -259,9 +251,45 @@ void ClientHandler::requestEnrolments(QHttpRequest *req, QHttpResponse *res)
 
             res->setStatusCode(qhttp::ESTATUS_OK);
             res->addHeaderValue("content-length", message.size());
-            res->addHeaderValue("Access-Control-Allow-Origin", QString("*"));
             res->addHeaderValue("content-type", QString("application/json"));
             res->end(message.toUtf8());
+        }
+    });
+}
+
+void ClientHandler::setMark(QHttpRequest *req, QHttpResponse *res)
+{
+    qDebug() << "setting mark for a specific student";
+
+    req->collectData(1024);
+
+    req->onEnd([req, res] {
+        if (req->collectedData().size() > 0)
+        {
+            QString receivedData = req->collectedData().constData();
+
+            QStringList parsedData = receivedData.split(";");
+
+            int returnedID = DatabaseInterface::instance()->setMark(parsedData.at(0).toInt()
+                                                                    , parsedData.at(1).toDouble());
+
+            qDebug() << "Setting mark for enrolment ID " << parsedData.at(0).toInt() << " and mark : " <<
+                     parsedData.at(1).toDouble();
+
+            if (returnedID != -1) {
+                QString message = QString("Mark has been set and added to database\n"
+                                          "reference ID : %1\n\n\tyou can close this window").arg(returnedID);
+
+                // return results
+                res->setStatusCode(qhttp::ESTATUS_OK);
+                res->addHeaderValue("content-length", message.size());
+                res->end(message.toUtf8());
+            } else {
+                res->setStatusCode(qhttp::ESTATUS_BAD_REQUEST);
+                QString message = QString("student name did not received");
+                res->addHeaderValue("content-length", message.size());
+                res->end(message.toUtf8());
+            }
         }
     });
 }

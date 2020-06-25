@@ -30,6 +30,7 @@ private slots:
     void requestStudents(QHttpRequest *req, QHttpResponse *res);
     void enrolStudentOnCourse(QHttpRequest *req, QHttpResponse *res);
     void requestEnrolments(QHttpRequest *req, QHttpResponse *res);
+    void setMark(QHttpRequest *req, QHttpResponse *res);
 
 private:
     DatabaseInterface *dbInterface;

@@ -101,6 +101,37 @@ int DatabaseInterface::addEnrolment(int studentNumber, int courseNumber)
     return returnedID;
 }
 
+int DatabaseInterface::setMark(int enrolmnetID, double mark)
+{
+    // check if the student already has mark on this enrolment or not
+    QSqlQuery checkQuery;
+    checkQuery.prepare("SELECT * FROM T_Marks WHERE Enrolment=:enrolmentID");
+    checkQuery.bindValue(":enrolmentID", enrolmnetID);
+
+    if (checkQuery.exec()) {
+        // if student already enroled on the selected course return -1 temporarily to prevent
+        // enrolling and then implement a proper error system
+        if (checkQuery.next()) {
+            return -1;
+        }
+    }
+
+    int returnedID = -1;
+
+    QSqlQuery query;
+    query.prepare("INSERT INTO T_Marks (ID, Enrolment, Mark) "
+                  "VALUES (:id, :enrolment, :mark)");
+    query.bindValue(":enrolment", enrolmnetID);
+    query.bindValue(":mark", mark);
+
+    if (query.exec()) {
+        returnedID = query.lastInsertId().toInt();
+        qDebug() << "returned mark id : " << returnedID;
+    }
+
+    return returnedID;
+}
+
 QJsonArray DatabaseInterface::requestCourses()
 {
     QJsonArray allCoursesArray;
@@ -150,8 +181,9 @@ QJsonArray DatabaseInterface::requestEnrolments(int studentID)
     // requesting all courses from database
     QSqlQuery query;
     query.prepare("SELECT * FROM T_Enrolments"
-                  " JOIN T_Students ON T_Enrolments.Student=T_Students.ID"
-                  " JOIN T_Courses ON T_Enrolments.Course=T_Courses.ID"
+                  " INNER JOIN T_Students ON T_Enrolments.Student=T_Students.ID"
+                  " INNER JOIN T_Courses ON T_Enrolments.Course=T_Courses.ID"
+                  " LEFT JOIN T_Marks ON T_Enrolments.ID=T_Marks.Enrolment"
                   " WHERE T_Enrolments.Student=:id");
     query.bindValue(":id", studentID);
     if (query.exec()) {
@@ -160,6 +192,7 @@ QJsonArray DatabaseInterface::requestEnrolments(int studentID)
             enrolmentObj.insert("ID", query.value(0).toString());
             enrolmentObj.insert("Student", query.value(4).toString());
             enrolmentObj.insert("Course", query.value(6).toString());
+            enrolmentObj.insert("Mark", query.value(8).toString());
 
             allEnrolmentsArray.append(enrolmentObj);
         }

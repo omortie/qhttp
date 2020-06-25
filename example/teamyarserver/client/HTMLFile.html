@@ -114,6 +114,8 @@
                 option.value = object.ID;
                 enrolStudentSelector.add(option);
             });
+            
+            requestEnrolments(document.getElementById("studentSelector").value);
         }
         
         function updateFields() {
@@ -159,13 +161,54 @@
             elmtTable.removeChild(tableRows[x]);
             }
             
+            var sumOfMarks = 0;
+            var counter = 0;
+            var averageHolder = document.getElementById("averageMark");
+            averageHolder.innerHTML = 0;
+            
             data.forEach(function(object) {
                 var tr = document.createElement('tr');
-                tr.innerHTML = '<td>' + object.ID + '</td>' +
+                tr.innerHTML = '<td style="color:blue" onclick="promptMark(' + object.ID + ')">' + object.ID + '</td>' +
                 '<td>' + object.Student + '</td>' +
-                '<td>' + object.Course + '</td>';
+                '<td>' + object.Course + '</td>' +
+                '<td>' + object.Mark + '</td>';
                 table.appendChild(tr);
+                
+                var newMark = parseFloat(object.Mark);
+                
+                if (newMark != NaN) {
+                    sumOfMarks = sumOfMarks + parseFloat(object.Mark);
+                    counter++;
+                }
+                    
+                averageHolder.innerHTML = sumOfMarks / counter;
             });
+        }
+        
+        function promptMark(enrolment) {
+            var mark = prompt("Enter a mark: [0 - 20]");
+            
+            if ((mark > 20 || mark < 0) || mark == null || parseFloat(mark) == NaN) {
+                alert("this mark is invalid, please try again");
+            } else {
+                setMark(enrolment, mark);
+            }
+        }
+        
+        function setMark(enrolment, mark) {
+            var xmlHttp = new XMLHttpRequest();
+            var url = "/enrolments/setmark";
+            
+            xmlHttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    var myArr = this.responseText;
+                    console.log(myArr);
+                    alert(myArr);
+                }
+            }
+            
+            xmlHttp.open("POST", url, true);
+            xmlHttp.send(enrolment + ";" + mark);
         }
         </script>
     </head>
@@ -217,18 +260,21 @@
             </select>
             <input type="submit" value="Enrol">
         </form>
-        <h5>Current Courses Enrolled:</h5>
+        <h5>Current Courses Enrolled: (to set a mark for each enrolment click on Blue IDs of them)</h5>
         <table id="enrolmentsTable">
             <colgroup>
                 <col class="twenty" />
                 <col class="fourty" />
                 <col class="twentyfive" />
+                <col class="thirty" />
             </colgroup>
             <tr>
                 <th onclick="sortTable(0)"><span class="glyphicon glyphicon-sort"></span>&nbsp&nbspID</th>
                 <th onclick="sortTable(1)"><span class="glyphicon glyphicon-sort"></span>&nbsp&nbspStudent</th>
                 <th onclick="sortTable(2)"><span class="glyphicon glyphicon-sort"></span>&nbsp&nbspCourse</th>
+                <th onclick="sortTable(3)"><span class="glyphicon glyphicon-sort"></span>&nbsp&nbspMark</th>
             </tr>
         </table>
+        <br>Average Mark: <p id="averageMark"></p>
     </body>
 </html>
