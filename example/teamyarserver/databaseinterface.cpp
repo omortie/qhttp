@@ -9,6 +9,10 @@ DatabaseInterface *DatabaseInterface::dbInterface = nullptr;
 
 DatabaseInterface::DatabaseInterface(QObject *parent) : QObject(parent)
 {
+    // this constructor will be called only once to create a database connection to
+    // the SQLITE database provided in project tree (database directory) and will be used
+    // later as the only connection to execute SQL statements
+
     db = QSqlDatabase::addDatabase("QSQLITE");
 
     db.setDatabaseName("../../example/teamyarserver/database/TeamyarDB.sqlite");
@@ -18,6 +22,7 @@ DatabaseInterface::DatabaseInterface(QObject *parent) : QObject(parent)
     } else if (!db.open()) {
         qDebug() << db.databaseName() + " Database Cannot be Opened!!!\n" + db.lastError().text();
     } else {
+        // show the user the list of the database tables loaded
         qDebug() << "list of tables loaded: " << db.tables();
     }
 }
